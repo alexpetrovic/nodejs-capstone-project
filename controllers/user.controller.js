@@ -1,3 +1,7 @@
+const query = require('../constants/query.constants');
+const message = require('../constants/message.constants');
+const db = require('../database');
+
 class UserController {
   createUser = (req, res) => {
     const { username } = req.body;
