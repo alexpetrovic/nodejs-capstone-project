@@ -25,6 +25,8 @@ const DURATION_MUST_BE_POSITIVE_NUMBER = "Duration must be a positive number";
 
 const INVALID_DATE = "Invalid date";
 
+const INVALID_LIMIT = "Limit must be a positive integer";
+
 module.exports = {
   DATABASE_CONNECTED,
   DATABASE_CONNECTION_ERROR,
@@ -39,4 +41,5 @@ module.exports = {
   DURATION_REQUIRED,
   DURATION_MUST_BE_POSITIVE_NUMBER,
   INVALID_DATE,
+  INVALID_LIMIT,
 };
