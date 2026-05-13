@@ -1,17 +1,18 @@
-const express = require('express');
+const express = require("express");
 const userRouter = express.Router();
-const UserController = require('../controllers/user.controller');
-const exerciseRouter = require('../routes/exercise.routes');
-
-const userController = new UserController();
+const UserController = require("../controllers/user.controller");
+const exerciseRouter = require("../routes/exercise.routes");
 
 userRouter
-  .route('/')
-  .post(userController.createUser)
-  .get(userController.getAllUsers);
+  .route("/")
+  .post((req, res) => new UserController().createUser(req, res));
+
+userRouter
+  .route("/")
+  .get((req, res) => new UserController().getAllUsers(req, res));
 
 userRouter.use(
-  '/:_id',
+  "/:_id",
   (req, _, next) => {
     req._id = req.params._id;
     next();

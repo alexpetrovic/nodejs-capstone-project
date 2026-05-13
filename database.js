@@ -1,7 +1,7 @@
-const sqlite3 = require('sqlite3').verbose();
-const message = require('./constants/message.constants');
-const query = require('./constants/query.constants');
-const DATABASE_PATH = './database.db';
+const sqlite3 = require("sqlite3").verbose();
+const message = require("./constants/message.constants");
+const query = require("./constants/query.constants");
+const DATABASE_PATH = "./database.db";
 
 const createTables = (database) => {
   const createTable = (query, message) => {

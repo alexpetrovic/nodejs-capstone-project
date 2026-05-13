@@ -1,13 +1,13 @@
-const query = require('../constants/query.constants');
-const message = require('../constants/message.constants');
-const db = require('../database');
+const query = require("../constants/query.constants");
+const message = require("../constants/message.constants");
+const db = require("../database");
 
 class ExercisesController {
   createExerciseForUser = (req, res) => {
     const isValidDate = (dateString) => {
       const regex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateString.match(regex)) return false;
-      const parts = dateString.split('-');
+      const parts = dateString.split("-");
       const year = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10);
       const day = parseInt(parts[2], 10);
@@ -27,6 +27,7 @@ class ExercisesController {
 
       return true;
     };
+
     const userId = req._id;
 
     const { description, duration, date } = req.body;
@@ -106,25 +107,25 @@ class ExercisesController {
       let params = [userId];
 
       if (from && to) {
-        newQuery += ' AND date BETWEEN ? AND ?';
+        newQuery += " AND date BETWEEN ? AND ?";
         params.push(from, to);
       } else if (from) {
-        newQuery += ' AND date >= ?';
+        newQuery += " AND date >= ?";
         params.push(from);
       } else if (to) {
-        newQuery += ' AND date <= ?';
+        newQuery += " AND date <= ?";
         params.push(to);
       }
-      newQuery += ' ORDER BY date ASC';
+      newQuery += " ORDER BY date ASC";
 
       db.all(newQuery, params, (err, rows) => {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
+        const cnt = rows.length;
         if (limit) {
           rows = rows.slice(0, limit);
         }
-        const cnt = rows.length;
         res.json({ userId, logs: rows, count: cnt });
       });
     });
