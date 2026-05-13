@@ -30,7 +30,11 @@ class ExercisesController {
 
     const userId = req._id;
 
-    const { description, duration, date } = req.body;
+    const { duration, date } = req.body;
+    const description =
+      req.body.description == null
+        ? ""
+        : String(req.body.description).trim();
 
     db.get(query.SELECT_USER_BY_ID, [userId], (err, row) => {
       if (err) {
@@ -43,7 +47,7 @@ class ExercisesController {
         });
       }
 
-      if (!description && !duration) {
+      if (!description && (duration === undefined || duration === null || duration === "")) {
         return res
           .status(400)
           .json({ error: message.DESCRIPTION_AND_DURATION_REQUIRED });
@@ -53,7 +57,7 @@ class ExercisesController {
         return res.status(400).json({ error: message.DESCRIPTION_REQUIRED });
       }
 
-      if (!duration) {
+      if (duration === undefined || duration === null || duration === "") {
         return res.status(400).json({ error: message.DURATION_REQUIRED });
       }
 
@@ -72,7 +76,7 @@ class ExercisesController {
       db.run(
         query.INSERT_INTO_EXERCISES,
         [userId, description, duration, exerciseDate],
-        (err) => {
+        function (err) {
           if (err) {
             return res.status(500).json({ error: err.message });
           }
@@ -103,31 +107,57 @@ class ExercisesController {
         });
       }
 
-      let newQuery = query.SELECT_EXERCISES_BY_USER_ID;
-      let params = [userId];
+      let filterSql = " WHERE userId = ?";
+      const params = [userId];
 
       if (from && to) {
-        newQuery += " AND date BETWEEN ? AND ?";
+        filterSql += " AND date BETWEEN ? AND ?";
         params.push(from, to);
       } else if (from) {
-        newQuery += " AND date >= ?";
+        filterSql += " AND date >= ?";
         params.push(from);
       } else if (to) {
-        newQuery += " AND date <= ?";
+        filterSql += " AND date <= ?";
         params.push(to);
       }
-      newQuery += " ORDER BY date ASC";
 
-      db.all(newQuery, params, (err, rows) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
+      let limitNum = null;
+      if (limit !== undefined && limit !== "") {
+        const parsed = parseInt(String(limit), 10);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+          return res.status(400).json({ error: message.INVALID_LIMIT });
         }
-        const cnt = rows.length;
-        if (limit) {
-          rows = rows.slice(0, limit);
-        }
-        res.json({ userId, logs: rows, count: cnt });
-      });
+        limitNum = parsed;
+      }
+
+      const sendResult = (count, rows) => {
+        res.json({ userId, logs: rows, count });
+      };
+
+      if (limitNum === null) {
+        const selectQuery = `SELECT * FROM exercises${filterSql} ORDER BY date ASC`;
+        db.all(selectQuery, params, (err, rows) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          sendResult(rows.length, rows);
+        });
+      } else {
+        const countQuery = `SELECT COUNT(*) as count FROM exercises${filterSql}`;
+        db.get(countQuery, params, (err, countRow) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          const total = countRow.count;
+          const selectQuery = `SELECT * FROM exercises${filterSql} ORDER BY date ASC LIMIT ?`;
+          db.all(selectQuery, [...params, limitNum], (err, rows) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+            sendResult(total, rows);
+          });
+        });
+      }
     });
   };
 }

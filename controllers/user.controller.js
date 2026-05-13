@@ -4,7 +4,11 @@ const db = require("../database");
 
 class UserController {
   createUser = (req, res) => {
-    const { username } = req.body;
+    const username =
+      req.body.username == null
+        ? ""
+        : String(req.body.username).trim();
+
     if (!username) {
       return res.status(400).json({ error: message.USERNAME_REQUIRED });
     }
